@@ -516,7 +516,7 @@ float accZPatternSquare[] = {
 void perfomAction1()
 {
   digitalWrite(25, HIGH);
-  Serial.println("Gesture1 recognized: Square");
+  // Serial.println("Gesture1 recognized: Square");
 }
 
 // void detectPattern(sensors_event_t a, sensors_event_t g)
@@ -600,7 +600,7 @@ void perfomAction1()
 //   }
 // }
 
-//----------------------- dtw methodes -----------------------//
+//----------------------- dtw methodes -----------------------// TODO: optimze datatypes
 float costMatrix[LENGTH][LENGTH];
 float dtwRecY[LENGTH];
 float dtwRecZ[LENGTH];
@@ -633,16 +633,16 @@ void recDTWData(sensors_event_t a, sensors_event_t g)
 
 void costMatrixInitialize()
 {
-  Serial.println("  Cost matrix initialize");
+  Serial.println("    Cost matrix initialize");
   for (byte row = 0; row < LENGTH; row++)
   {
     for (byte column = 0; column < LENGTH; column++)
     {
-      costMatrix[row][column] = 10000.0;
+      costMatrix[row][column] = 0;
     }
   }
   costMatrix[0][0] = 0;
-  Serial.println("    ->Initialize done");
+  Serial.println("      ->Initialize done");
 }
 
 std::array<float, 3> minChilds(int i, int j)
@@ -681,19 +681,22 @@ float calculateCost(int i, int j, float *pattern, float *matrix)
   return std::abs(pattern[i] - matrix[j]) + getMin(i, j);
 }
 
-void calcualteCostMatrix(float tempPattern[], float seqPattern[])
+void calcualteCostMatrix(float tempPattern[], float seqPattern[]) // TODO: LOCAL CONSTRAINTS
 {
-  Serial.println("  Starting cost matrix calculation");
+  Serial.println("    Starting cost matrix calculation");
   for (int i = 1; i < LENGTH; i++)
     for (int j = 1; j < LENGTH; j++)
-      costMatrix[i][j] = calculateCost(i, j, tempPattern, seqPattern);
-  Serial.println("    ->Calculation done");
+    {
+      float cost =
+          costMatrix[i][j] = calculateCost(i, j, tempPattern, seqPattern);
+    }
+  Serial.println("      ->Calculation done");
 }
 
 float calculateSpaceToDia(int i, int j)
 { // calculate shortest distance between point/diagonale
   float tmpResult = 0;
-  Serial.println("  Started area calcualtion");
+  Serial.println("    Started area calcualtion");
   while (i >= 0 && j >= 0)
   {
     std::array<float, 3> tmpChilds = minChilds(i, j);
@@ -709,7 +712,7 @@ float calculateSpaceToDia(int i, int j)
     if (tmpMin != tmpChilds[2] || tmpChilds[0] == tmpChilds[2])
       --i;
   }
-  Serial.println("    ->Calcualtion done");
+  Serial.println("      ->Calcualtion done");
   return tmpResult;
 }
 
@@ -731,16 +734,17 @@ void printCostMatrix()
 void dwtAnalysis()
 {
   similarity = 0;
-
+  Serial.println("  y-axis: ");
   costMatrixInitialize();
-  calcualteCostMatrix(accYPatternSquare, dtwRecY);
+  calcualteCostMatrix(accYPatternSquare, dtwRecY); // FIXME: first rows/colums wrong calc
+  // printCostMatrix();
   similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
-  Serial.println(similarity);
 
+  Serial.println("  z-axis: ");
   costMatrixInitialize();
   calcualteCostMatrix(accZPatternSquare, dtwRecZ);
+  // printCostMatrix();
   similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
-  Serial.println(similarity);
 }
 
 // boolean isPatternMatching()
@@ -794,20 +798,21 @@ void loop()
   recDTWData(acc, gyro);
   if (dtwRecCount >= LENGTH) // start recognition
   {
-    Serial.println("Start dtw recognition");
+    Serial.println("\nStart dtw recognition");
     dwtAnalysis();
-    Serial.print("  Similarity: ");
+    Serial.print("\n  Similarity: ");
     Serial.println(similarity);
     if (similarity < 10000)
     { // TODO: adapt threshold
       Serial.println("  Gesture recognized!");
+      perfomAction1();
     }
     else
     {
       Serial.println("  Wrong gesture");
     }
     dtwRecCount = 0;
-    Serial.println("  Dtw finished");
+    Serial.println("  ->Dtw finished");
   }
 
   delay(10);
