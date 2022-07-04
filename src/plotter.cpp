@@ -3,7 +3,9 @@
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
-#include <limits>
+#include <array>
+
+#define LENGTH 150
 
 // attribues
 Adafruit_MPU6050 mpu;
@@ -15,15 +17,13 @@ byte showPos = 0;
 uint16_t recInterval = 0;
 boolean recFlag = false;
 
-int length(double array[])
+int length(float array[])
 {
   return sizeof(array) / sizeof(array[0]);
 }
 
-double costMatrix[150][150];
-
 // pattern data
-double accXPatternSquare[] = {
+float accXPatternSquare[] = {
     3.49,
     3.26,
     3.27,
@@ -175,7 +175,7 @@ double accXPatternSquare[] = {
     1.82,
     2.04,
 };
-double accYPatternSquare[] = {
+float accYPatternSquare[] = {
     -0.38,
     -0.36,
     -0.67,
@@ -327,7 +327,7 @@ double accYPatternSquare[] = {
     -1.47,
     -1.45,
 };
-double accZPatternSquare[] = {
+float accZPatternSquare[] = {
     8.98,
     8.5,
     8.69,
@@ -481,36 +481,37 @@ double accZPatternSquare[] = {
 };
 
 //----------------------- plotter -----------------------//
-void plotData(sensors_event_t a, sensors_event_t g)
-{
-  Serial.print("AccelX:");
-  Serial.print(a.acceleration.x);
-  Serial.print(",");
-  Serial.print("AccelY:");
-  Serial.print(a.acceleration.y);
-  Serial.print(",");
-  Serial.print("AccelZ:");
-  Serial.print(a.acceleration.z);
-  Serial.print(", ");
-  Serial.print("GyroX:");
-  Serial.print(g.gyro.x);
-  Serial.print(",");
-  Serial.print("GyroY:");
-  Serial.print(g.gyro.y);
-  Serial.print(",");
-  Serial.print("GyroZ:");
-  Serial.print(g.gyro.z);
-  Serial.print(", ");
 
-  Serial.print("Top:");
-  Serial.print(9.81);
-  Serial.print(",");
-  Serial.print("Bottom:");
-  Serial.print(-9.81);
-  Serial.print(",");
+// void plotData(sensors_event_t a, sensors_event_t g)
+// {
+//   Serial.print("AccelX:");
+//   Serial.print(a.acceleration.x);
+//   Serial.print(",");
+//   Serial.print("AccelY:");
+//   Serial.print(a.acceleration.y);
+//   Serial.print(",");
+//   Serial.print("AccelZ:");
+//   Serial.print(a.acceleration.z);
+//   Serial.print(", ");
+//   Serial.print("GyroX:");
+//   Serial.print(g.gyro.x);
+//   Serial.print(",");
+//   Serial.print("GyroY:");
+//   Serial.print(g.gyro.y);
+//   Serial.print(",");
+//   Serial.print("GyroZ:");
+//   Serial.print(g.gyro.z);
+//   Serial.print(", ");
 
-  Serial.println("");
-}
+//   Serial.print("Top:");
+//   Serial.print(9.81);
+//   Serial.print(",");
+//   Serial.print("Bottom:");
+//   Serial.print(-9.81);
+//   Serial.print(",");
+
+//   Serial.println("");
+// }
 
 void perfomAction1()
 {
@@ -532,79 +533,79 @@ void perfomAction1()
 //     sqrPos = 0;
 // }
 
-void showPattern(sensors_event_t a, float accXPattern[], float accYPattern[], float accZPattern[])
-{
-  Serial.print("AccelX:");
-  Serial.print(a.acceleration.x);
-  Serial.print(",");
-  Serial.print("AccelY:");
-  Serial.print(a.acceleration.y);
-  Serial.print(",");
-  Serial.print("AccelZ:");
-  Serial.print(a.acceleration.z);
-  Serial.print(",");
+// void showPattern(sensors_event_t a, float accXPattern[], float accYPattern[], float accZPattern[])
+// {
+//   Serial.print("AccelX:");
+//   Serial.print(a.acceleration.x);
+//   Serial.print(",");
+//   Serial.print("AccelY:");
+//   Serial.print(a.acceleration.y);
+//   Serial.print(",");
+//   Serial.print("AccelZ:");
+//   Serial.print(a.acceleration.z);
+//   Serial.print(",");
 
-  Serial.print("AccelXTop:");
-  Serial.print(accXPattern[showPos] + threshold);
-  Serial.print(",");
-  Serial.print("AccelYTop:");
-  Serial.print(accYPattern[showPos] + threshold);
-  Serial.print(",");
-  Serial.print("AccelZTop:");
-  Serial.print(accZPattern[showPos] + threshold);
-  Serial.print(",");
+//   Serial.print("AccelXTop:");
+//   Serial.print(accXPattern[showPos] + threshold);
+//   Serial.print(",");
+//   Serial.print("AccelYTop:");
+//   Serial.print(accYPattern[showPos] + threshold);
+//   Serial.print(",");
+//   Serial.print("AccelZTop:");
+//   Serial.print(accZPattern[showPos] + threshold);
+//   Serial.print(",");
 
-  Serial.print("AccelXBottom:");
-  Serial.print(accXPattern[showPos] - threshold);
-  Serial.print(",");
-  Serial.print("AccelYBottom:");
-  Serial.print(accYPattern[showPos] - threshold);
-  Serial.print(",");
-  Serial.print("AccelZBottom:");
-  Serial.print(accZPattern[showPos] - threshold);
-  Serial.print(",");
+//   Serial.print("AccelXBottom:");
+//   Serial.print(accXPattern[showPos] - threshold);
+//   Serial.print(",");
+//   Serial.print("AccelYBottom:");
+//   Serial.print(accYPattern[showPos] - threshold);
+//   Serial.print(",");
+//   Serial.print("AccelZBottom:");
+//   Serial.print(accZPattern[showPos] - threshold);
+//   Serial.print(",");
 
-  Serial.println("");
+//   Serial.println("");
 
-  showPos++;
+//   showPos++;
 
-  if (showPos >= sizeof(accXPatternSquare) / sizeof(accXPatternSquare[0]))
-  {
-    showPos = 0;
-  }
-}
+//   if (showPos >= sizeof(accXPatternSquare) / sizeof(accXPatternSquare[0]))
+//   {
+//     showPos = 0;
+//   }
+// }
 
-void recData(sensors_event_t a, sensors_event_t g)
-{
-  if (!recFlag && Serial.parseInt() == 1)
-  {
-    recFlag = true;
-    Serial.println("AccelX,AccelY,AccelZ");
-  }
+// void recData(sensors_event_t a, sensors_event_t g)
+// {
+//   if (!recFlag && Serial.parseInt() == 1)
+//   {
+//     recFlag = true;
+//     Serial.println("AccelX,AccelY,AccelZ");
+//   }
 
-  if (recFlag && recInterval < 1000)
-  {
-    Serial.print(a.acceleration.x);
-    Serial.print(",");
-    Serial.print(a.acceleration.y);
-    Serial.print(",");
-    Serial.println(a.acceleration.z);
+//   if (recFlag && recInterval < 1000)
+//   {
+//     Serial.print(a.acceleration.x);
+//     Serial.print(",");
+//     Serial.print(a.acceleration.y);
+//     Serial.print(",");
+//     Serial.println(a.acceleration.z);
 
-    if (++recInterval >= 150)
-    {
-      recFlag = false;
-      recInterval = 0;
-      Serial.println("----------------------------------------------------------");
-    }
-  }
-}
+//     if (++recInterval >= 150)
+//     {
+//       recFlag = false;
+//       recInterval = 0;
+//       Serial.println("----------------------------------------------------------");
+//     }
+//   }
+// }
 
 //----------------------- dtw methodes -----------------------//
-double *costMatrix[150][150];
-double *dtwRecY = new double[150];
-double *dtwRecZ = new double[150];
-int dtwRecCount = 0;
-double similarity = 0;
+float costMatrix[LENGTH][LENGTH];
+float dtwRecY[LENGTH];
+float dtwRecZ[LENGTH];
+short dtwRecCount = 0;
+int similarity = 0;
 
 void recDTWData(sensors_event_t a, sensors_event_t g)
 {
@@ -621,22 +622,32 @@ void recDTWData(sensors_event_t a, sensors_event_t g)
     dtwRecZ[dtwRecCount] = a.acceleration.z;
     dtwRecCount++;
 
-    if (++recInterval >= 150)
+    if (++recInterval >= LENGTH)
     {
       recFlag = false;
       recInterval = 0;
-      Serial.println("End recognition recording");
+      Serial.println("  ->End recognition recording");
     }
   }
 }
 
 void costMatrixInitialize()
 {
+  Serial.println("  Cost matrix initialize");
+  for (byte row = 0; row < LENGTH; row++)
+  {
+    for (byte column = 0; column < LENGTH; column++)
+    {
+      costMatrix[row][column] = 10000.0;
+    }
+  }
+  costMatrix[0][0] = 0;
+  Serial.println("    ->Initialize done");
 }
 
-double *minChilds(int i, int j)
+std::array<float, 3> minChilds(int i, int j)
 {
-  double tmpChilds[] = {std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()};
+  std::array<float, 3> tmpChilds = {10000.0, 10000.0, 10000.0};
   if (i - 1 >= 0 && j - 1 >= 0) // match
     tmpChilds[0] = costMatrix[i - 1][j - 1];
   if (i - 1 >= 0) // insertion
@@ -646,10 +657,10 @@ double *minChilds(int i, int j)
   return tmpChilds;
 }
 
-double getMin(int i, int j)
+float getMin(int i, int j)
 { // min -> match, insertion, deletion
-  double *minChild = minChilds(i, j);
-  double min = std::numeric_limits<double>::infinity();
+  std::array<float, 3> minChild = minChilds(i, j);
+  float min = 10000;
   if (min > minChild[0])
   {
     min = minChild[0];
@@ -665,16 +676,56 @@ double getMin(int i, int j)
   return min;
 }
 
-double calculateCost(int i, int j, double pattern[], double matrix[])
+float calculateCost(int i, int j, float *pattern, float *matrix)
 { // dtw algorithm
   return std::abs(pattern[i] - matrix[j]) + getMin(i, j);
 }
 
-void calcualteCostMatrix(double tempPattern[], double seqPattern[])
+void calcualteCostMatrix(float tempPattern[], float seqPattern[])
 {
-  for (int i = 1; i < length(tempPattern); i++)
-    for (int j = 1; j < length(seqPattern); j++)
+  Serial.println("  Starting cost matrix calculation");
+  for (int i = 1; i < LENGTH; i++)
+    for (int j = 1; j < LENGTH; j++)
       costMatrix[i][j] = calculateCost(i, j, tempPattern, seqPattern);
+  Serial.println("    ->Calculation done");
+}
+
+float calculateSpaceToDia(int i, int j)
+{ // calculate shortest distance between point/diagonale
+  float tmpResult = 0;
+  Serial.println("  Started area calcualtion");
+  while (i >= 0 && j >= 0)
+  {
+    std::array<float, 3> tmpChilds = minChilds(i, j);
+    float tmpMin = getMin(i, j);
+
+    float tmpCoord = 0.5 * (i + j);
+    float tmpDistance = sqrt(pow(tmpCoord - i, 2) + pow(tmpCoord - j, 2));
+
+    tmpResult += abs(tmpDistance);
+
+    if (tmpMin != tmpChilds[1] || tmpChilds[0] == tmpChilds[1])
+      --j;
+    if (tmpMin != tmpChilds[2] || tmpChilds[0] == tmpChilds[2])
+      --i;
+  }
+  Serial.println("    ->Calcualtion done");
+  return tmpResult;
+}
+
+void printCostMatrix()
+{
+  Serial.println("  Cost matrix print out");
+  for (byte row = 0; row < LENGTH; row++)
+  {
+    for (byte column = 0; column < LENGTH; column++)
+    {
+      Serial.print(costMatrix[row][column]);
+      Serial.print("\t");
+    }
+    Serial.println("");
+  }
+  Serial.println("    ->Print done");
 }
 
 void dwtAnalysis()
@@ -683,16 +734,18 @@ void dwtAnalysis()
 
   costMatrixInitialize();
   calcualteCostMatrix(accYPatternSquare, dtwRecY);
-  similarity += calculateSpaceToDia(149, 149);
+  similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
+  Serial.println(similarity);
 
   costMatrixInitialize();
   calcualteCostMatrix(accZPatternSquare, dtwRecZ);
-  similarity += calculateSpaceToDia(149, 149);
+  similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
+  Serial.println(similarity);
 }
 
 // boolean isPatternMatching()
 // {
-//   return costMatrix[149][149] <= 75;
+//   return smiilarity <= 10000;
 // }
 
 //----------------------- main -----------------------//
@@ -739,21 +792,22 @@ void loop()
 
   //--- DTW ---//
   recDTWData(acc, gyro);
-  if (dtwRecCount >= 150) // start recognition
+  if (dtwRecCount >= LENGTH) // start recognition
   {
     Serial.println("Start dtw recognition");
     dwtAnalysis();
-
-    if (similarity > 10000)
+    Serial.print("  Similarity: ");
+    Serial.println(similarity);
+    if (similarity < 10000)
     { // TODO: adapt threshold
-      Serial.println("Gesture recognized!");
+      Serial.println("  Gesture recognized!");
     }
     else
     {
-      Serial.println("Wrong gesture");
+      Serial.println("  Wrong gesture");
     }
-
     dtwRecCount = 0;
+    Serial.println("  Dtw finished");
   }
 
   delay(10);
