@@ -1,4 +1,5 @@
 # MagicWand-Gesture-recognition
+
 ### Real working magic wand
 Using an Arduino and a gyroscope/accelerometer as input for gesture recognition, commands can be executed in an almost magical way.
 It is encased in a 3D-printed housing that looks like Harry Potter's wand.
@@ -12,6 +13,7 @@ The serial output is not needed for functionality, but for debugging. It is set 
 
 ### Components:
 * ESP32 (DevKitC V4)
+* (ATTiny85/Arduino Pro Micro)
 * MPU6050 gyroscope
 * IR diode
 * cables
@@ -22,3 +24,8 @@ The serial output is not needed for functionality, but for debugging. It is set 
 - [ ] Local constraints in the DTW cost matrix to aboard the calculation if outside of range
 - [ ] Auto-recognition of gestures
 - [ ] Add 3D files
+- [ ] ArduinoProMicro/ATTiny85 compatible
+
+### Miscellaneous:
+Actually it was planned not to use an ESP32 but originally an ATTiny85. However, this is for the development and debugging rather less suitable. The advantage would be that this is much smaller and can be operated longer with a battery.
+As a compromise I still have an Arduino Pro Micro lying around, maybe the time will find that I can use this, but the memory must be adapted, since this is much smaller than that of the ESP32.
