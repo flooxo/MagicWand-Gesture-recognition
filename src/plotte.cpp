@@ -851,7 +851,7 @@ void perfomAction1()
   digitalWrite(25, HIGH);
   delay(100);
   digitalWrite(25, LOW);
-  Serial.println("\033[1;32mbold Gesture1 recognized: Square counter-clockwise");
+  Serial.println("\033[1;32m Gesture1 recognized: Square counter-clockwise\033[1;39m");
 }
 
 void perfomAction2()
@@ -863,7 +863,7 @@ void perfomAction2()
   digitalWrite(25, HIGH);
   delay(100);
   digitalWrite(25, LOW);
-  Serial.println("\033[1;32mbold Gesture2 recognized: Circle clockwise");
+  Serial.println("\033[1;32m Gesture2 recognized: Circle clockwise\033[1;39m");
 }
 
 //----------------------- main -----------------------//
@@ -934,7 +934,7 @@ void loop()
     else if (dtw1Similarity > dtw2Similarity && dtw2Similarity < 10000)
       perfomAction2();
     else
-      Serial.println("  \033[1;31mWrong gesture");
+      Serial.println("  \033[1;31mWrong gesture\033[1;39m");
 
     dtwRecCount = 0;
     Serial.println("  ->Dtw finished");
