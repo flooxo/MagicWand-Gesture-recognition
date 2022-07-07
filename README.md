@@ -9,7 +9,7 @@ The accelerometer data is used in the Dynamic Time Warp algorithm to calculate t
 If the pattern matches (=below a certain threshold), an action is executed. In my case I wanted to control my LED strips, so I send an IR signal
 when the gesture is detected.
 <br />
-The serial output is not needed for functionality, but for debugging. It is set up to work with Putty and has some nice colors to make debugging easier.
+The serial output is not needed for functionality, but for debugging. It is set up to work with Putty and has some nice colors to make debugging easier. (https://xdevs.com/guide/color_serial/)
 
 ![image](https://user-images.githubusercontent.com/93255373/177857505-fcd9639e-0442-45ab-9a4b-7e79443cd54a.png)
 <br />
