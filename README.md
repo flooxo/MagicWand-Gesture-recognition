@@ -51,6 +51,7 @@ _connection sketch_
 - [ ] Auto-recognition of gestures
 - [ ] Add 3D files
 - [ ] ArduinoProMicro/ATTiny85 compatible
+- [ ] Substract gyro out of acc data!!!!
 
 ## Plans:
 ![20220707_204939](https://user-images.githubusercontent.com/93255373/177851997-8b7767d9-c346-4ddb-b3e3-dd23a55e031e.jpg)
