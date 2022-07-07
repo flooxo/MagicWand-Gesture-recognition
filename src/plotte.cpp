@@ -919,15 +919,15 @@ void loop()
 
     dwtAnalysis(accYPatternSquare, dtwRecY, accZPatternSquare, dtwRecZ);
     dtw1Similarity = similarity;
-    Serial.print("  Similarity: ");
+    Serial.print("\033[1m  =>Similarity: ");
     Serial.println(dtw1Similarity);
-    Serial.println();
+    Serial.println("\033[1;39m");
 
     dwtAnalysis(accYPatternCircle, dtwRecY, accZPatternCircle, dtwRecZ);
     dtw2Similarity = similarity;
-    Serial.print("  Similarity: ");
+    Serial.print("\033[1m  =>Similarity: ");
     Serial.println(dtw2Similarity);
-    Serial.println();
+    Serial.println("\033[1;39m");
 
     if (dtw2Similarity > dtw1Similarity && dtw1Similarity < 10000) // TODO: adapt threshold
       perfomAction1();
