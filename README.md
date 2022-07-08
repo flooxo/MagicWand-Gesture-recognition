@@ -65,7 +65,7 @@ _connection sketch_
 ### Miscellaneous:
 Actually it was planned not to use an ESP32 but originally an ATTiny85. However, this is for the development and debugging rather less suitable. The advantage would be that this is much smaller and can be operated longer with a battery.
 As a compromise I still have an Arduino Pro Micro lying around, maybe the time will find that I can use this, but the memory must be adapted, since this is much smaller than that of the ESP32.
-<br \>
+<br />
 Another idea that just came up, instead of having the Arduino calculate everything, maybe just use it as input and send the data to a more powerful controller like a Raspberry Pi. The Pi then calculates everything and may even be able to do more advanced things due to its higher processing power. The results of the calculation are then converted into an action and sent back to the Arduino, which then performs the given instruction.
 - - - -
 ###### all information without guarantee of correctness, is only my hobby on the side; for questions, suggestions or improvements please contact me
