@@ -22,6 +22,7 @@ int length(float array[])
   return sizeof(array) / sizeof(array[0]);
 }
 
+// TODO: put data into extra data.h file to make it more readable
 // pattern data
 float accYPatternSquare[] = {
     -0.38,
