@@ -8,11 +8,11 @@
 #include <patternData.h>
 
 #define LENGTH 150
-
+// TODO: make compatible with smaller storage size
 // attribues
 Adafruit_MPU6050 mpu;
 
-float threshold = 10;
+unsigned char threshold = 10;
 byte sqrPos = 0;
 byte showPos = 0;
 
@@ -95,8 +95,23 @@ void recData(sensors_event_t a, sensors_event_t g)
 float costMatrix[LENGTH][LENGTH];
 float dtwRecY[LENGTH];
 float dtwRecZ[LENGTH];
-short dtwRecCount = 0;
-int similarity = 0;
+unsigned char dtwRecCount = 0;
+short similarity = 0;
+
+// FIXME: test progression bar
+void showProgressionBar(unsigned char index)
+{
+  Serial.print("\33[2K\r");
+  for (int i = 0; i < 50; i++)
+    if (i < index / 3)
+      Serial.print("■");
+    else
+      Serial.print("□");
+
+  Serial.print("\t\033[1;36m");
+  Serial.print(((index + LENGTH) - 1) / LENGTH);
+  Serial.print(" %^[1;39m");
+}
 
 void recDTWData(sensors_event_t a, sensors_event_t g)
 {
@@ -109,6 +124,8 @@ void recDTWData(sensors_event_t a, sensors_event_t g)
 
   if (recFlag && recInterval < 1000)
   {
+    showProgressionBar(dtwRecCount);
+
     dtwRecY[dtwRecCount] = a.acceleration.y;
     dtwRecZ[dtwRecCount] = a.acceleration.z;
     dtwRecCount++;
@@ -125,8 +142,8 @@ void recDTWData(sensors_event_t a, sensors_event_t g)
 void costMatrixInitialize()
 {
   Serial.println("    Cost matrix initialize");
-  for (byte row = 0; row < LENGTH; row++)
-    for (byte column = 0; column < LENGTH; column++)
+  for (unsigned char row = 0; row < LENGTH; row++)
+    for (unsigned char column = 0; column < LENGTH; column++)
       costMatrix[row][column] = 0;
   costMatrix[0][0] = 0;
   Serial.println("      ->Initialize done");
@@ -327,6 +344,10 @@ void loop()
     Serial.println("  ->Dtw finished");
     Serial.println("-------------------------------------------------");
   }
+
+  // Serial.print("\33[2K\rtest");
+  Serial.print("test1");
+  Serial.print("\rtest2");
 
   delay(10);
 }
