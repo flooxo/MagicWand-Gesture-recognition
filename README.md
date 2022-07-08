@@ -29,7 +29,7 @@ For this there is a so-called cost matrix. This contains calculated values, whic
 The green diagonal would be if the gesture would match at every point
 <br />&nbsp;&nbsp;&nbsp;&nbsp;-> area = 0 => similarity = 100%.<br />
 The blue path is a gesture that is very similar to the sample pattern, which you can see because it is very close to the diagonal
-<br />&nbsp;&nbsp;&nbsp;&nbsp;-> area ≈ 9500 -> similarity = ~95%<br /> 
+<br />&nbsp;&nbsp;&nbsp;&nbsp;-> area ≈ 950 -> similarity = ~95%<br /> 
 The red path is the inverse of the sample pattern, which is also clearly visible because it deviates strongly from the diagonal
 <br />&nbsp;&nbsp;&nbsp;&nbsp;-> area ≈ 8500 -> similarity = ~20%<br />
 In purple is the area that is calculated to get the similarity.
@@ -52,6 +52,7 @@ _connection sketch_
 - [ ] Add 3D files
 - [ ] ArduinoProMicro/ATTiny85 compatible
 - [ ] Substract gyro out of acc data!!!!
+- [ ] Serial progress bar for VSCode/Putty (when reccording or calcualting)
 
 ## Plans:
 ![20220707_204939](https://user-images.githubusercontent.com/93255373/177851997-8b7767d9-c346-4ddb-b3e3-dd23a55e031e.jpg)
