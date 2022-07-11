@@ -12,9 +12,7 @@
 // attribues
 Adafruit_MPU6050 mpu;
 
-unsigned char threshold = 10;
-byte sqrPos = 0;
-byte showPos = 0;
+const unsigned short THRESHOLD = 30000;
 
 uint16_t recInterval = 0;
 boolean recFlag = false;
@@ -52,30 +50,22 @@ void plotData(sensors_event_t a, sensors_event_t g)
   Serial.println("");
 }
 
-void detectPattern(sensors_event_t a, sensors_event_t g)
-{
-  if (true)               // see next data
-    if (sqrPos >= LENGTH) // end of data
-    {
-      // perfomAction1();
-      sqrPos = 0;
-    }
-    else
-      sqrPos++;
-  else // begin again
-    sqrPos = 0;
-}
-
 void recData(sensors_event_t a, sensors_event_t g)
 {
   if (!recFlag && Serial.parseInt() == 1)
   {
     recFlag = true;
-    Serial.println("AccelX,AccelY,AccelZ");
+    Serial.println("GyroX,GyroY,GyroZ,AccelX,AccelY,AccelZ");
   }
 
   if (recFlag && recInterval < 1000)
   {
+    Serial.print(g.gyro.x);
+    Serial.print(",");
+    Serial.print(g.gyro.y);
+    Serial.print(",");
+    Serial.print(g.gyro.z);
+    Serial.print(",");
     Serial.print(a.acceleration.x);
     Serial.print(",");
     Serial.print(a.acceleration.y);
@@ -93,8 +83,14 @@ void recData(sensors_event_t a, sensors_event_t g)
 
 //----------------------- dtw methodes -----------------------// TODO: optimze datatypes
 float costMatrix[LENGTH][LENGTH];
-float dtwRecY[LENGTH];
-float dtwRecZ[LENGTH];
+
+float dtwRecXGyro[LENGTH];
+float dtwRecYGyro[LENGTH];
+float dtwRecZGyro[LENGTH];
+float dtwRecXAcc[LENGTH];
+float dtwRecYAcc[LENGTH];
+float dtwRecZAcc[LENGTH];
+
 unsigned char dtwRecCount = 0;
 short similarity = 0;
 
@@ -109,8 +105,12 @@ void recDTWData(sensors_event_t a, sensors_event_t g)
 
   if (recFlag && recInterval < 1000)
   {
-    dtwRecY[dtwRecCount] = a.acceleration.y;
-    dtwRecZ[dtwRecCount] = a.acceleration.z;
+    dtwRecXGyro[dtwRecCount] = g.gyro.x;
+    dtwRecYGyro[dtwRecCount] = g.gyro.y;
+    dtwRecZGyro[dtwRecCount] = g.gyro.z;
+    dtwRecXAcc[dtwRecCount] = a.acceleration.x;
+    dtwRecYAcc[dtwRecCount] = a.acceleration.y;
+    dtwRecZAcc[dtwRecCount] = a.acceleration.z;
     dtwRecCount++;
 
     if (++recInterval >= LENGTH)
@@ -210,15 +210,32 @@ void printCostMatrix()
 }
 
 // TODO: adjust accelerometer values depending on gryro
-void dwtAnalysis(float patternY[], float recY[], float patternZ[], float recZ[])
+void dwtAnalysis(float patternXGyro[], float patternYGyro[], float patternZGyro[], float patternXGAcc[], float patternYAcc[], float patternZAcc[])
 {
   similarity = 0;
+
   costMatrixInitialize();
-  calcualteCostMatrix(patternY, recY);
+  calcualteCostMatrix(patternXGyro, dtwRecXGyro);
   similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
 
   costMatrixInitialize();
-  calcualteCostMatrix(patternZ, recZ);
+  calcualteCostMatrix(patternYGyro, dtwRecYGyro);
+  similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
+
+  costMatrixInitialize();
+  calcualteCostMatrix(patternZGyro, dtwRecZGyro);
+  similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
+
+  costMatrixInitialize();
+  calcualteCostMatrix(patternXGAcc, dtwRecXAcc);
+  similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
+
+  costMatrixInitialize();
+  calcualteCostMatrix(patternYAcc, dtwRecYAcc);
+  similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
+
+  costMatrixInitialize();
+  calcualteCostMatrix(patternZAcc, dtwRecZAcc);
   similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
 }
 
@@ -281,11 +298,8 @@ void loop()
   sensors_event_t acc, gyro, temp;
   mpu.getEvent(&acc, &gyro, &temp);
 
-  // plotDatarecData(acc, gyro);
-
   // recData(acc, gyro);
-  //  plotData(acc, gyro);
-  //   showPattern(acc, accXPatternDown, accYPatternDown, accZPatternDown);
+  // plotData(acc, gyro);
 
   // detectPattern(acc, gyro);
 
@@ -298,21 +312,21 @@ void loop()
 
     Serial.println("\nStart dtw recognition");
 
-    dwtAnalysis(accYPatternSquare, dtwRecY, accZPatternSquare, dtwRecZ);
+    dwtAnalysis(patternSquareXGyro, patternSquareYGyro, patternSquareZGyro, patternSquareXAcc, patternSquareYAcc, patternSquareZAcc);
     dtw1Similarity = similarity;
     Serial.print("\033[1m  =>Similarity: ");
     Serial.println(dtw1Similarity);
     Serial.println("\033[0;39m");
 
-    dwtAnalysis(accYPatternCircle, dtwRecY, accZPatternCircle, dtwRecZ);
+    dwtAnalysis(patternCircleXGyro, patternCircleYGyro, patternCircleZGyro, patternCircleXAcc, patternCircleYAcc, patternCircleZAcc);
     dtw2Similarity = similarity;
     Serial.print("\033[1m  =>Similarity: ");
     Serial.println(dtw2Similarity);
     Serial.println("\033[0;39m");
 
-    if (dtw2Similarity > dtw1Similarity && dtw1Similarity < 10000) // TODO: adapt threshold
+    if (dtw2Similarity > dtw1Similarity && dtw1Similarity < THRESHOLD) // TODO: adapt threshold
       perfomAction1();
-    else if (dtw1Similarity > dtw2Similarity && dtw2Similarity < 10000)
+    else if (dtw1Similarity > dtw2Similarity && dtw2Similarity < THRESHOLD)
       perfomAction2();
     else
       Serial.println("  \033[1;31mWrong gesture\033[0;39m");
