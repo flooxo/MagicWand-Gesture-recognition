@@ -29,7 +29,7 @@ class DTW extends dataList {
     public static void main(String[] args) {
         clearResourceData();
         int dataCount = 0;
-        // int fileLocationCounter = 0;
+        int fileLocationCounter = 0;
 
         for (double[][] patternData : dataPacks) {
             System.out.println("Data " + dataCount++ + ": ");
@@ -39,7 +39,7 @@ class DTW extends dataList {
             for (double[] dataSeq : patternData) {
                 intitialize();
                 calcualteCostMatrix(dataPacks[0][xyz % 3], dataSeq);
-                // printFile(fileLocation[fileLocationCounter++]);
+                printFile(fileLocation[fileLocationCounter++]);
 
                 // printSimilarityOutput(dataPacks[0][xyz % 3], dataSeq);
 

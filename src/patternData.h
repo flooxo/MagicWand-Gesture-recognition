@@ -1,5 +1,9 @@
 // pattern data
-float patternSquareXGyro[] = {
+const unsigned char NUM_PATTERN = 2;
+const unsigned char AXIES = 6;
+const unsigned char LENGTH = 150;
+
+float patternSquareXGyro[LENGTH] = {
     -0.1,
     -0.07,
     -0.06,
@@ -151,7 +155,7 @@ float patternSquareXGyro[] = {
     0.27,
     0.27,
 };
-float patternSquareYGyro[] = {
+float patternSquareYGyro[LENGTH] = {
     0.03,
     0,
     0,
@@ -303,7 +307,7 @@ float patternSquareYGyro[] = {
     -1.1,
     -1.08,
 };
-float patternSquareZGyro[] = {
+float patternSquareZGyro[LENGTH] = {
     0.04,
     -0.03,
     -0.03,
@@ -455,7 +459,7 @@ float patternSquareZGyro[] = {
     0,
     0.06,
 };
-float patternSquareXAcc[] = {
+float patternSquareXAcc[LENGTH] = {
     4.1,
     4.31,
     4.28,
@@ -607,7 +611,7 @@ float patternSquareXAcc[] = {
     2.55,
     2.42,
 };
-float patternSquareYAcc[] = {
+float patternSquareYAcc[LENGTH] = {
     0.03,
     -0.21,
     -0.18,
@@ -759,7 +763,7 @@ float patternSquareYAcc[] = {
     0.03,
     0.03,
 };
-float patternSquareZAcc[] = {
+float patternSquareZAcc[LENGTH] = {
     8.49,
     8.33,
     8.37,
@@ -912,7 +916,9 @@ float patternSquareZAcc[] = {
     8.2,
 };
 
-float patternCircleXGyro[] = {
+float *squarePattern[AXIES] = {patternSquareXGyro, patternSquareYGyro, patternSquareZGyro, patternSquareXAcc, patternSquareYAcc, patternSquareZAcc};
+
+float patternCircleXGyro[LENGTH] = {
     -0.06,
     -0.08,
     -0.08,
@@ -1064,7 +1070,7 @@ float patternCircleXGyro[] = {
     -0.1,
     -0.1,
 };
-float patternCircleYGyro[] = {
+float patternCircleYGyro[LENGTH] = {
     0.07,
     -0.03,
     -0.03,
@@ -1216,7 +1222,7 @@ float patternCircleYGyro[] = {
     0.03,
     0.01,
 };
-float patternCircleZGyro[] = {
+float patternCircleZGyro[LENGTH] = {
     -0.01,
     0.01,
     0.01,
@@ -1368,7 +1374,7 @@ float patternCircleZGyro[] = {
     0,
     0.02,
 };
-float patternCircleXAcc[] = {
+float patternCircleXAcc[LENGTH] = {
     4.49,
     3.6,
     3.59,
@@ -1520,7 +1526,7 @@ float patternCircleXAcc[] = {
     3.46,
     3.47,
 };
-float patternCircleYAcc[] = {
+float patternCircleYAcc[LENGTH] = {
     -1.28,
     -1.97,
     -1.83,
@@ -1672,7 +1678,7 @@ float patternCircleYAcc[] = {
     -0.64,
     -0.33,
 };
-float patternCircleZAcc[] = {
+float patternCircleZAcc[LENGTH] = {
     8.33,
     8.37,
     8.2,
@@ -1824,3 +1830,7 @@ float patternCircleZAcc[] = {
     8.73,
     8.58,
 };
+
+float *circlePattern[AXIES] = {patternCircleXGyro, patternCircleYGyro, patternCircleZGyro, patternCircleXAcc, patternCircleYAcc, patternCircleZAcc};
+
+float **patterns[NUM_PATTERN] = {squarePattern, circlePattern};

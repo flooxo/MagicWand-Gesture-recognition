@@ -7,12 +7,11 @@
 
 #include <patternData.h>
 
-#define LENGTH 150
-// TODO: make compatible with smaller storage size + make class for dtwGestures
+// TODO: make compatible with smaller storage size
 // attribues
 Adafruit_MPU6050 mpu;
 
-const short THRESHOLD = 10000;
+const unsigned short THRESHOLD = 30000;
 
 uint16_t recInterval = 0;
 boolean recFlag = false;
@@ -55,11 +54,17 @@ void recData(sensors_event_t a, sensors_event_t g)
   if (!recFlag && Serial.parseInt() == 1)
   {
     recFlag = true;
-    Serial.println("AccelX,AccelY,AccelZ");
+    Serial.println("GyroX,GyroY,GyroZ,AccelX,AccelY,AccelZ");
   }
 
   if (recFlag && recInterval < 1000)
   {
+    Serial.print(g.gyro.x);
+    Serial.print(",");
+    Serial.print(g.gyro.y);
+    Serial.print(",");
+    Serial.print(g.gyro.z);
+    Serial.print(",");
     Serial.print(a.acceleration.x);
     Serial.print(",");
     Serial.print(a.acceleration.y);
@@ -75,46 +80,19 @@ void recData(sensors_event_t a, sensors_event_t g)
   }
 }
 
-//----------------------- actions -----------------------//
-void perfomAction1()
-{
-  digitalWrite(25, HIGH);
-  delay(100);
-  digitalWrite(25, LOW);
-  Serial.println("\033[1;32m Gesture1 recognized: Square counter-clockwise\033[0;39m");
-}
-
-void perfomAction2()
-{
-  digitalWrite(25, HIGH);
-  delay(100);
-  digitalWrite(25, LOW);
-  delay(50);
-  digitalWrite(25, HIGH);
-  delay(100);
-  digitalWrite(25, LOW);
-  Serial.println("\033[1;32m Gesture2 recognized: Circle clockwise\033[0;39m");
-}
-
 //----------------------- dtw methodes -----------------------// TODO: optimze datatypes
 float costMatrix[LENGTH][LENGTH];
 
-float dtwRecXGyro[] = {};
-float dtwRecYGyro[] = {};
-float dtwRecZGyro[] = {};
-float dtwRecXAcc[] = {};
-float dtwRecYAcc[] = {};
-float dtwRecZAcc[] = {};
-float dtwRecGesture[][LENGTH] = {*dtwRecXGyro, *dtwRecYGyro, *dtwRecZGyro, *dtwRecXAcc, *dtwRecYAcc, *dtwRecZAcc};
+float dtwRecXGyro[LENGTH];
+float dtwRecYGyro[LENGTH];
+float dtwRecZGyro[LENGTH];
+float dtwRecXAcc[LENGTH];
+float dtwRecYAcc[LENGTH];
+float dtwRecZAcc[LENGTH];
 
 unsigned char dtwRecCount = 0;
+unsigned int similarity = 0;
 
-/**
- * @brief writes the current state of the sensor in a array
- *
- * @param a accelerometer input
- * @param g gyroscope input
- */
 void recDTWData(sensors_event_t a, sensors_event_t g)
 {
   if (!recFlag && Serial.parseInt() == 2)
@@ -151,12 +129,6 @@ void costMatrixInitialize()
   costMatrix[0][0] = 0;
 }
 
-/**
- * @brief gives the values of the cost matrix to the left, up und up-left
- * @param i = x
- * @param j = y
- * @return std::array<float, 3> containing the neighbour values
- */
 std::array<float, 3> minChilds(int i, int j)
 {
   std::array<float, 3> tmpChilds = {10000.0, 10000.0, 10000.0};
@@ -169,51 +141,24 @@ std::array<float, 3> minChilds(int i, int j)
   return tmpChilds;
 }
 
-/**
- * @brief returns the minimum of minChilds of current position
- * @param i = x
- * @param j = y
- * @return float = smallest of the neighbours
- */
 float getMin(int i, int j)
 { // min -> match, insertion, deletion
   std::array<float, 3> minChild = minChilds(i, j);
   float min = 10000;
   if (min > minChild[0])
-  {
     min = minChild[0];
-  }
   if (min > minChild[1])
-  {
     min = minChild[1];
-  }
   if (min > minChild[2])
-  {
     min = minChild[2];
-  }
   return min;
 }
 
-/**
- * @brief calcualtes the cost for the current point
- *
- * @param i = x
- * @param j = y
- * @param pattern
- * @param gesture
- * @return float value of the current cost matrix cell
- */
-float calculateCost(int i, int j, float pattern[], float gesture[])
+float calculateCost(int i, int j, float *pattern, float *matrix)
 { // dtw algorithm
-  return std::abs(pattern[i] - gesture[j]) + getMin(i, j);
+  return std::abs(pattern[i] - matrix[j]) + getMin(i, j);
 }
 
-/**
- * @brief calcualtes the cost matrix for a given pattern and current gesture
- *
- * @param tempPattern = pattern
- * @param seqPattern = gesture
- */
 void calcualteCostMatrix(float samplePattern[], float gesturePattern[]) // TODO: LOCAL CONSTRAINTS
 {
   for (int i = 1; i < LENGTH; i++)
@@ -221,14 +166,8 @@ void calcualteCostMatrix(float samplePattern[], float gesturePattern[]) // TODO:
       costMatrix[i][j] = calculateCost(i, j, samplePattern, gesturePattern);
 }
 
-/**
- * @brief calculate shortest distance between point/diagonale
- * @param i = y
- * @param j = x
- * @return float = area size
- */
 float calculateSpaceToDia(int i, int j)
-{
+{ // calculate shortest distance between point/diagonale
   float tmpResult = 0;
   while (i >= 0 && j >= 0)
   {
@@ -245,6 +184,8 @@ float calculateSpaceToDia(int i, int j)
     if (tmpMin != tmpChilds[2] || tmpChilds[0] == tmpChilds[2])
       --i;
   }
+  Serial.print(" -> ");
+  Serial.println(tmpResult);
   return tmpResult;
 }
 
@@ -263,52 +204,61 @@ void printCostMatrix()
   Serial.println("    ->Print done");
 }
 
-/**
- * @brief iterrating of all gyro/acc axies and adding up the similarity based on the area
- * @param pattern one of the patterns to match
- * @return short = similarity
- */
-short dtwAnalysis(float pattern[][LENGTH])
+// TODO: adjust accelerometer values depending on gryro
+void dwtAnalysis(float patternXGyro[], float patternYGyro[], float patternZGyro[], float patternXGAcc[], float patternYAcc[], float patternZAcc[])
 {
-  short similarity = 0;
-  for (int i = 0; i < sizeof(pattern[0]) / sizeof(pattern[0][1]); i++)
-  {
-    costMatrixInitialize();
-    calcualteCostMatrix(pattern[i], dtwRecGesture[i]);
-    similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
-  }
-  return similarity;
+  similarity = 0;
+
+  Serial.print("  Axies: 0");
+  costMatrixInitialize();
+  calcualteCostMatrix(patternXGyro, dtwRecXGyro);
+  similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
+
+  Serial.print("  Axies: 1");
+  costMatrixInitialize();
+  calcualteCostMatrix(patternYGyro, dtwRecYGyro);
+  similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
+
+  Serial.print("  Axies: 2");
+  costMatrixInitialize();
+  calcualteCostMatrix(patternZGyro, dtwRecZGyro);
+  similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
+
+  Serial.print("  Axies: 3");
+  costMatrixInitialize();
+  calcualteCostMatrix(patternXGAcc, dtwRecXAcc);
+  similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
+
+  Serial.print("  Axies: 4");
+  costMatrixInitialize();
+  calcualteCostMatrix(patternYAcc, dtwRecYAcc);
+  similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
+
+  Serial.print("  Axies: 5");
+  costMatrixInitialize();
+  calcualteCostMatrix(patternZAcc, dtwRecZAcc);
+  similarity += calculateSpaceToDia(LENGTH - 1, LENGTH - 1);
 }
 
-/**
- * @brief calculating dtwAnalysis for each pattern with the current recorded gesture
- * @return short* containing the similarity
- */
-short *detectPattern()
+//----------------------- actions -----------------------//
+void perfomAction1()
 {
-  short similaritys[NUM_PATTERN];
-  for (int i = 0; i < NUM_PATTERN; i++)
-  {
-    similaritys[i] = dtwAnalysis(patterns[i]);
-    Serial.print("\033[1m  =>Similarity: ");
-    Serial.println(similaritys[i]);
-    Serial.println("\033[0;39m");
-  }
-  return similaritys;
+  digitalWrite(25, HIGH);
+  delay(100);
+  digitalWrite(25, LOW);
+  Serial.println("\033[1;32m Gesture1 recognized: Square counter-clockwise\033[0;39m");
 }
 
-/**
- * @brief picking the best similarity from the array -> perfomAction
- */
-void recognizeGesture()
+void perfomAction2()
 {
-  short similaritys[] = {*detectPattern()};
-  if (similaritys[0] < THRESHOLD && similaritys[0] < similaritys[1])
-    perfomAction1();
-  else if (similaritys[1] < THRESHOLD && similaritys[1] < similaritys[0])
-    perfomAction2();
-  else
-    Serial.println("  \033[1;31mWrong gesture\033[0;39m");
+  digitalWrite(25, HIGH);
+  delay(100);
+  digitalWrite(25, LOW);
+  delay(50);
+  digitalWrite(25, HIGH);
+  delay(100);
+  digitalWrite(25, LOW);
+  Serial.println("\033[1;32m Gesture2 recognized: Circle clockwise\033[0;39m");
 }
 
 //----------------------- main -----------------------//
@@ -335,11 +285,11 @@ void setup(void)
   mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
   Serial.println("");
 
-  pinMode(25, OUTPUT);
-
-  Serial.println("Harry Potter Magic Wand ━━☆ﾟ");
+  Serial.println("Harry Potter Magic Wand ━━☆ﾟ PLOTTER VERSION");
   Serial.println("Press 2 for gesture recognition");
   Serial.println("should be automated in the future\n");
+
+  pinMode(25, OUTPUT);
 
   delay(100);
 }
@@ -349,13 +299,40 @@ void loop()
   sensors_event_t acc, gyro, temp;
   mpu.getEvent(&acc, &gyro, &temp);
 
+  // recData(acc, gyro);
+  // plotData(acc, gyro);
+
+  // detectPattern(acc, gyro);
+
   //--- DTW ---//
   recDTWData(acc, gyro);
   if (dtwRecCount >= LENGTH) // start recognition
   {
+    unsigned int dtw1Similarity;
+    unsigned int dtw2Similarity;
+
     Serial.println("\nStart dtw recognition");
 
-    recognizeGesture();
+    Serial.println("Pattern: 0");
+    dwtAnalysis(patternSquareXGyro, patternSquareYGyro, patternSquareZGyro, patternSquareXAcc, patternSquareYAcc, patternSquareZAcc);
+    dtw1Similarity = similarity;
+    Serial.print("\033[1m  =>Similarity: ");
+    Serial.println(dtw1Similarity);
+    Serial.println("\033[0;39m");
+
+    Serial.println("Pattern: 1");
+    dwtAnalysis(patternCircleXGyro, patternCircleYGyro, patternCircleZGyro, patternCircleXAcc, patternCircleYAcc, patternCircleZAcc);
+    dtw2Similarity = similarity;
+    Serial.print("\033[1m  =>Similarity: ");
+    Serial.println(dtw2Similarity);
+    Serial.println("\033[0;39m");
+
+    if (dtw2Similarity > dtw1Similarity && dtw1Similarity < THRESHOLD) // TODO: adapt threshold
+      perfomAction1();
+    else if (dtw1Similarity > dtw2Similarity && dtw2Similarity < THRESHOLD)
+      perfomAction2();
+    else
+      Serial.println("  \033[1;31mWrong gesture\033[0;39m");
 
     dtwRecCount = 0;
     Serial.println("  ->Dtw finished");
